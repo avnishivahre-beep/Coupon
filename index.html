@@ -574,7 +574,10 @@
                 musicBtn.style.transform = "scale(1)";
                 // Optional: Show tooltip again? No, user knows now.
             } else {
-                bgAudio.play();
+                bgAudio.play().catch(error => {
+                    console.error("Audio playback failed:", error);
+                    alert("⚠️ Audio Error: " + error.message + "\n\nTry interacting with the page first or checking your volume!");
+                });
                 musicBtn.innerText = "⏸";
                 musicBtn.style.transform = "scale(1.1)";
                 musicTooltip.classList.remove('show'); // Hide tooltip
