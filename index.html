@@ -116,13 +116,16 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
             border-radius: 30px;
-            padding: 2.5rem 2rem;
+            padding: 2rem 1.5rem;
+            /* Reduced padding from 2.5rem 2rem */
             width: 90%;
-            max-width: 650px;
+            max-width: 600px;
+            /* Reduced width from 650px */
             text-align: center;
             box-shadow: var(--card-shadow);
             z-index: 10;
-            animation: cardEntrance 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            animation: slideUp 1s ease-out;
+            /* Removed min-height to fix "huge" window issue */
             position: relative;
         }
 
@@ -414,6 +417,196 @@
                 right: 20px;
             }
         }
+
+        /* --- Gift Box & Scratch Cards --- */
+        .gift-section {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+
+        .gift-box {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-10px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .gift-body {
+            width: 80px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            position: absolute;
+            bottom: 0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .gift-lid {
+            width: 90px;
+            height: 20px;
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
+            position: absolute;
+            top: 10px;
+            left: -5px;
+            border-radius: 4px;
+            z-index: 2;
+        }
+
+        .gift-ribbon-v {
+            position: absolute;
+            width: 12px;
+            height: 100%;
+            background: #fff;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            z-index: 1;
+        }
+
+        .gift-ribbon-h {
+            position: absolute;
+            height: 12px;
+            width: 100%;
+            background: #fff;
+            top: 35px;
+            z-index: 1;
+        }
+
+        .gift-text {
+            position: absolute;
+            bottom: -30px;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .scratch-container {
+            display: none;
+            /* Hidden until opened */
+            flex-direction: row;
+            gap: 20px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @media (max-width: 600px) {
+            .scratch-container {
+                flex-direction: column;
+            }
+        }
+
+        .scratch-card {
+            position: relative;
+            width: 180px;
+            height: 120px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            user-select: none;
+        }
+
+        .scratch-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .teaser-section {
+            margin-top: 1.5rem;
+            /* Reduced from auto/large gap */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-result {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            box-sizing: border-box;
+            background: #fffdf9;
+            z-index: 1;
+        }
+
+        .card-result.win {
+            color: #ff4757;
+        }
+
+        .card-result.lose {
+            color: #535c68;
+        }
+
+        .card-result h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .card-result small {
+            font-weight: normal;
+            color: #7f8fa6;
+            margin-top: 5px;
+            line-height: 1.2;
+            font-size: 0.8rem;
+        }
+
+        canvas.scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            cursor: grab;
+            transition: opacity 0.5s;
+        }
+
+        .scratch-label {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -421,6 +614,8 @@
 
     <!-- Ambient Background -->
     <div class="ambient-bg" id="particles"></div>
+
+
 
 
 
@@ -452,33 +647,48 @@
                 </div>
             </div>
 
-            <!-- Teaser Interaction -->
+            <!-- Teaser & Interaction Row -->
             <div class="teaser-section">
-                <div class="heart-container" id="interaction-heart" onclick="handleHeartTap()">
-                    <div class="tap-hint" id="tap-hint">Tap me 💗</div>
-                    <svg viewBox="0 0 32 29.6" class="heart-svg">
-                        <defs>
-                            <linearGradient id="heart-fill" x1="0" x2="0" y1="1" y2="0">
-                                <stop offset="0%" stop-color="#ff758c" />
-                                <stop offset="0%" stop-color="#ff7eb3" id="fill-stop">
-                                    <animate attributeName="offset" duration="0.5" fill="freeze" />
-                                </stop>
-                                <stop offset="0%" stop-color="rgba(255,255,255,0.6)" id="empty-stop" />
-                            </linearGradient>
-                            <filter id="glow">
-                                <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
-                                <feMerge>
-                                    <feMergeNode in="coloredBlur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                            </filter>
-                        </defs>
-                        <path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2
-                        c6.1-9.3,16-11.9,16-21.2C32,3.8,28.2,0,23.6,0z" fill="url(#heart-fill)"
-                            stroke="rgba(255,255,255,0.8)" stroke-width="1" filter="url(#glow)" />
-                    </svg>
+
+                <div class="interaction-row"
+                    style="display: flex; gap: 25px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <!-- Heart -->
+                    <div class="heart-container" id="interaction-heart" onclick="handleHeartTap()">
+                        <div class="tap-hint" id="tap-hint">Tap me 💗</div>
+                        <svg viewBox="0 0 32 29.6" class="heart-svg">
+                            <defs>
+                                <linearGradient id="heart-fill" x1="0" x2="0" y1="1" y2="0">
+                                    <stop offset="0%" stop-color="#ff758c" />
+                                    <stop offset="0%" stop-color="#ff7eb3" id="fill-stop">
+                                        <animate attributeName="offset" duration="0.5" fill="freeze" />
+                                    </stop>
+                                    <stop offset="0%" stop-color="rgba(255,255,255,0.6)" id="empty-stop" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="1.5" result="coloredBlur" />
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2
+                            c6.1-9.3,16-11.9,16-21.2C32,3.8,28.2,0,23.6,0z" fill="url(#heart-fill)"
+                                stroke="rgba(255,255,255,0.8)" stroke-width="1" filter="url(#glow)" />
+                        </svg>
+                    </div>
+
+                    <!-- Gift Box -->
+                    <div class="gift-box" id="gift-box" onclick="openGiftBox()">
+                        <div class="gift-lid"></div>
+                        <div class="gift-body"></div>
+                        <div class="gift-ribbon-v"></div>
+                        <div class="gift-ribbon-h"></div>
+                        <div class="gift-text">Open Me 🎁</div>
+                    </div>
                 </div>
 
+                <!-- Hidden Note (Below) -->
                 <div class="hidden-note" id="love-note">
                     <div class="note-content">
                         "My Dearest Tissu,<br><br>
@@ -487,6 +697,27 @@
                         I can't wait to celebrate you."
                     </div>
                     <div class="note-signature">- Forever Yours, Harsh ❤️</div>
+                </div>
+
+                <!-- Scratch Cards Container (Hidden inside teaser section now for flow) -->
+                <div class="gift-section" id="gift-section" style="margin-top: 1rem;">
+                    <div class="scratch-container" id="scratch-scene">
+                        <div class="scratch-wrap">
+                            <div class="scratch-card">
+                                <div class="card-result" id="res-1"></div> <!-- Empty for JS injection -->
+                                <canvas id="scratch-1" class="scratch-canvas" width="180" height="120"></canvas>
+                            </div>
+                            <div class="scratch-label">Card 1</div>
+                        </div>
+
+                        <div class="scratch-wrap">
+                            <div class="scratch-card">
+                                <div class="card-result" id="res-2"></div> <!-- Empty for JS injection -->
+                                <canvas id="scratch-2" class="scratch-canvas" width="180" height="120"></canvas>
+                            </div>
+                            <div class="scratch-label">Card 2</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -754,6 +985,125 @@
             }, 250);
         }
 
+        // --- GIFT BOX & SCRATCH CARDS ---
+        function openGiftBox() {
+            const giftBox = document.getElementById('gift-box');
+            const scratchScene = document.getElementById('scratch-scene');
+
+            // Animate Box
+            giftBox.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                giftBox.style.transform = "scale(1.5) rotate(-10deg)";
+                giftBox.style.opacity = "0";
+
+                // --- RANDOMIZE CARDS ---
+                // 1. Define contents
+                const winContent = `
+                    <div class="card-result win" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <h3>Fulkiiiiii....</h3>
+                        <small>You win my love,<br>Lets GO...</small>
+                    </div>`;
+
+                const loseContent = `
+                    <div class="card-result lose" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <h3>MOMOSSSssss....</h3>
+                        <small>Oops…<br>you missed something...</small>
+                    </div>`;
+
+                // 2. Shuffle
+                const cards = [winContent, loseContent];
+                if (Math.random() > 0.5) cards.reverse(); // 50/50 swap
+
+                // 3. Inject
+                document.getElementById('res-1').innerHTML = cards[0];
+                document.getElementById('res-2').innerHTML = cards[1];
+
+                setTimeout(() => {
+                    giftBox.style.display = 'none';
+                    scratchScene.style.display = 'flex'; // Show cards
+
+                    // Init scratch logic
+                    initScratchCard('scratch-1', '#bdc3c7'); // Silver
+                    initScratchCard('scratch-2', '#bdc3c7'); // Silver
+                }, 300);
+            }, 200);
+        }
+
+        function initScratchCard(canvasId, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            let isDrawing = false;
+
+            // Fill with cover color
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, width, height);
+
+            // Add subtle noise/texture (optional)
+            ctx.fillStyle = "rgba(0,0,0,0.1)";
+            for (let i = 0; i < 300; i++) {
+                ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
+            }
+
+            // Scratch Logic
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (canvas.width / rect.width),
+                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                };
+            };
+
+            const scratch = (e) => {
+                if (!isDrawing) return;
+                e.preventDefault(); // Prevent scroll on touch
+                const pos = getPos(e);
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            const start = () => { isDrawing = true; };
+            const end = () => {
+                isDrawing = false;
+                checkCompletion();
+            };
+
+            // Events
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mousemove', scratch);
+            canvas.addEventListener('mouseup', end);
+            canvas.addEventListener('mouseleave', end);
+
+            canvas.addEventListener('touchstart', start);
+            canvas.addEventListener('touchmove', scratch);
+            canvas.addEventListener('touchend', end);
+
+            // Check % Cleared
+            const checkCompletion = () => {
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const pixels = imageData.data;
+                let clearCount = 0;
+                // Check alpha channel (every 4th byte)
+                for (let i = 3; i < pixels.length; i += 4) {
+                    if (pixels[i] === 0) clearCount++;
+                }
+
+                const percent = (clearCount / (width * height)) * 100;
+                if (percent > 40) { // If 40% cleared, reveal all
+                    canvas.style.opacity = '0';
+                    setTimeout(() => canvas.style.display = 'none', 500);
+                    // Confetti mini burst?
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }
+            };
+        }
+
         // Init
         const timerInterval = setInterval(updateTimer, 1000);
         updateTimer();
@@ -761,4 +1111,3 @@
 </body>
 
 </html>
-
