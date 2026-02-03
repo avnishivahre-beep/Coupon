@@ -985,16 +985,48 @@
             }, 250);
         }
 
-        // --- GIFT BOX & SCRATCH CARDS (SUSPENDED) ---
+        // --- GIFT BOX & SCRATCH CARDS ---
         function openGiftBox() {
-            // Suspended Logic as per request
-            alert("Aj ka gift mil gaya kitni bar legi lalcahi??");
-
-            // Optional: Shake effect
             const giftBox = document.getElementById('gift-box');
-            giftBox.style.animation = 'none';
-            giftBox.offsetHeight; /* trigger reflow */
-            giftBox.style.animation = 'bounce 0.5s';
+            const scratchScene = document.getElementById('scratch-scene');
+
+            // Animate Box
+            giftBox.style.transform = "scale(0.9)";
+            setTimeout(() => {
+                giftBox.style.transform = "scale(1.5) rotate(-10deg)";
+                giftBox.style.opacity = "0";
+
+                // --- RANDOMIZE CARDS ---
+                // 1. Define contents
+                const winContent = `
+                    <div class="card-result win" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <h3>chipssss....</h3>
+                        <small>You win my love,<br>Lets GO...</small>
+                    </div>`;
+
+                const loseContent = `
+                    <div class="card-result lose" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                        <h3>kurkureee....</h3>
+                        <small>Oops…<br>you missed something...</small>
+                    </div>`;
+
+                // 2. Shuffle
+                const cards = [winContent, loseContent];
+                if (Math.random() > 0.5) cards.reverse(); // 50/50 swap
+
+                // 3. Inject
+                document.getElementById('res-1').innerHTML = cards[0];
+                document.getElementById('res-2').innerHTML = cards[1];
+
+                setTimeout(() => {
+                    giftBox.style.display = 'none';
+                    scratchScene.style.display = 'flex'; // Show cards
+
+                    // Init scratch logic
+                    initScratchCard('scratch-1', '#bdc3c7'); // Silver
+                    initScratchCard('scratch-2', '#bdc3c7'); // Silver
+                }, 300);
+            }, 200);
         }
 
         function initScratchCard(canvasId, color) {
